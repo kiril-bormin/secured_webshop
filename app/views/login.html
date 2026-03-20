@@ -40,7 +40,7 @@
 <script>
     console.log('Marche');
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault(); // Empêche le rechargement de la page
+    e.preventDefault(); 
 
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
