@@ -4,7 +4,7 @@
   "description": "Une application Node.js",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js -L"
+    "dev": "nodemon server.js -L"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -11,11 +11,21 @@
 
     <main>
         <section class="hero">
-            <div class="container">
-                <h1>Connexion</h1>
-                <p>Placer un formulaire de connexion ici</p>
+                <div class="container">
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">Email :</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Mot de passe :</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+
+                        <button type="submit">Se connecter</button>
+                    </form>
             </div>
-        </section>
+        </section>  
     </main>
 
     <footer id="contact" class="footer">
@@ -27,3 +37,34 @@
     <script src="/js/nav.js"></script>
 </body>
 </html>
+<script>
+    console.log('Marche');
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Empêche le rechargement de la page
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+    });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log('Connexion réussie:', result);
+            alert('Connexion réussie !');
+            // Redirigez l'utilisateur ou stockez le token ici
+        } else {
+            console.error('Erreur de connexion:', result.error || result.message);
+        }
+    } catch (error) {
+        console.error('Erreur réseau:', error);
+    }
+    });
+</script>
