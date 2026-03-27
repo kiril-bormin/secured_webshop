@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const PEPPER = process.env.PEPPER;
 
 module.exports = {
   // ----------------------------------------------------------
@@ -25,7 +26,9 @@ module.exports = {
 
       const user = results[0];
 
-      bcrypt.compare(password, user.password, (err, isMatch) => {
+      const passwordWithPepper = password + PEPPER;
+
+      bcrypt.compare(passwordWithPepper, user.password, (err, isMatch) => {
         if (err)
           return res.status(500).json({ error: "Erreur de vérification" });
 
@@ -53,7 +56,9 @@ module.exports = {
       return res.status(400).json({ error: "Tous les champs sont requis" });
     }
 
-    bcrypt.hash(password, saltRounds, (err, hash) => {
+    passwordWithPepper = password + PEPPER;
+
+    bcrypt.hash(passwordWithPepper, saltRounds, (err, hash) => {
       if (err) return res.status(500).json({ error: "Erreur de hachage" });
 
       const query =
