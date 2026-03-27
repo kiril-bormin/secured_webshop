@@ -1,31 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Secure Shop - Connexion</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
+
 <body>
     <div id="topbar"></div>
 
     <main>
         <section class="hero">
-                <div class="container">
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label for="email">Email :</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Mot de passe :</label>
-                            <input type="password" id="password" name="password" required>
-                        </div>
+            <div class="container">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email :</label>
+                        <input type="email" id="email" name="email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mot de passe :</label>
+                        <input type="password" id="password" name="password" required />
+                    </div>
 
-                        <button type="submit">Se connecter</button>
-                    </form>
+                    <div id="errorMessage" style="color: red; margin-bottom: 15px; display: none"></div>
+
+                    <button type="submit">Se connecter</button>
+                </form>
             </div>
-        </section>  
+        </section>
     </main>
 
     <footer id="contact" class="footer">
@@ -36,35 +42,41 @@
 
     <script src="/js/nav.js"></script>
 </body>
+
 </html>
 <script>
-    console.log('Marche');
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault(); 
+    const notyf = new Notyf();
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
 
-    try {
-        const response = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-    });
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
 
-        const result = await response.json();
+            const result = await response.json();
+            const errorDiv = document.getElementById("errorMessage");
 
-        if (response.ok) {
-            console.log('Connexion réussie:', result);
-            alert('Connexion réussie !');
-            // Redirigez l'utilisateur ou stockez le token ici
-        } else {
-            console.error('Erreur de connexion:', result.error || result.message);
+            if (response.ok) {
+                console.log("Connexion réussie:", result);
+                if (result.user) {
+                    localStorage.setItem("user", JSON.stringify(result.user));
+                }
+                notyf.success("Connexion réussie !");
+                setTimeout(() => {window.location.href = "/"; }, 1000);
+            } else {
+                notyf.error("Email ou mot de passe incorrect");
+
+            }
+        } catch (error) {
+            console.error("Erreur réseau:", error);
         }
-    } catch (error) {
-        console.error('Erreur réseau:', error);
-    }
     });
 </script>
