@@ -46,10 +46,26 @@
 
     <script src="/js/nav.js"></script>
     <script>
-        fetch('/api/admin/users')
-            .then(r => r.json())
+        authFetch('/api/admin/users')
+            .then(async (r) => {
+                if (r.status === 401) {
+                    window.location.href = '/login';
+                    return [];
+                }
+
+                if (r.status === 403) {
+                    document.getElementById('user-table-body').innerHTML =
+                        '<tr><td colspan="5">Accès interdit (admin requis)</td></tr>';
+                    return [];
+                }
+
+                return r.json();
+            })
             .then(users => {
                 const tbody = document.getElementById('user-table-body');
+                if (!Array.isArray(users)) {
+                    return;
+                }
                 tbody.innerHTML = users.map(u => `
                     <tr>
                         <td>${u.id}</td>

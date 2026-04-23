@@ -66,6 +66,9 @@
 
             if (response.ok) {
                 console.log("Connexion réussie:", result);
+                if (result.token) {
+                    localStorage.setItem("token", result.token);
+                }
                 if (result.user) {
                     localStorage.setItem("user", JSON.stringify(result.user));
                 }

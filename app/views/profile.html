@@ -72,7 +72,11 @@
         // Chargement du profil au démarrage
         // ------------------------------------------------------------------
         async function loadProfile() {
-            const res = await fetch('/api/profile');
+            const res = await authFetch('/api/profile');
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
             if (!res.ok) return;
             const user = await res.json();
 
@@ -98,11 +102,16 @@
             e.preventDefault();
             const address = document.getElementById('address').value;
 
-            const res = await fetch('/api/profile', {
+            const res = await authFetch('/api/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ address })
             });
+
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
 
             const data = await res.json();
             showMessage(res.ok ? 'success' : 'error', data.message || data.error);
@@ -120,7 +129,13 @@
             const formData = new FormData();
             formData.append('photo', file);
 
-            const res = await fetch('/api/profile/photo', { method: 'POST', body: formData });
+            const res = await authFetch('/api/profile/photo', { method: 'POST', body: formData });
+
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
             const data = await res.json();
             showMessage(res.ok ? 'success' : 'error', data.message || data.error);
             if (res.ok) loadProfile();
