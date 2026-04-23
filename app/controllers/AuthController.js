@@ -1,7 +1,10 @@
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const PEPPER = process.env.PEPPER;
+const JWT_SECRET = process.env.JWT_SECRET || "dev_only_change_me";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "2h";
 
 module.exports = {
   // ----------------------------------------------------------
@@ -38,9 +41,20 @@ module.exports = {
             .json({ error: "Email ou mot de passe incorrect" });
         }
 
+        const token = jwt.sign(
+          {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+          },
+          JWT_SECRET,
+          { expiresIn: JWT_EXPIRES_IN },
+        );
+
         res.json({
           message: "Connexion réussie",
-          user: { id: user.id, username: user.username },
+          token,
+          user: { id: user.id, username: user.username, role: user.role },
         });
       });
     });
@@ -56,7 +70,7 @@ module.exports = {
       return res.status(400).json({ error: "Tous les champs sont requis" });
     }
 
-    passwordWithPepper = password + PEPPER;
+    const passwordWithPepper = password + PEPPER;
 
     bcrypt.hash(passwordWithPepper, saltRounds, (err, hash) => {
       if (err) return res.status(500).json({ error: "Erreur de hachage" });
