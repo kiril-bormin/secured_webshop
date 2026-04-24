@@ -29,6 +29,10 @@ app.use("/api/admin", adminRoute);
 // ---------------------------------------------------------------
 const homeRoute = require("./routes/Home");
 const userRoute = require("./routes/User");
+const {
+  authenticateTokenPage,
+  authorizeRolePage,
+} = require("./middleware/auth");
 
 app.use("/", homeRoute);
 app.use("/user", userRoute);

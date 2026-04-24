@@ -93,4 +93,26 @@ module.exports = {
       });
     });
   },
+
+  // ----------------------------------------------------------
+  // POST /api/auth/refresh
+  // ----------------------------------------------------------
+  refresh: (req, res) => {
+    const user = req.user;
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN },
+    );
+
+    res.json({
+      message: "Token rafraîchi",
+      token,
+    });
+  },
 };

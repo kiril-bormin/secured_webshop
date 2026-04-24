@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Administration</title>
     <link rel="stylesheet" href="/css/main.css">
 </head>
+
 <body>
     <div id="topbar"></div>
 
@@ -31,7 +33,9 @@
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <tr><td colspan="5">Chargement...</td></tr>
+                        <tr>
+                            <td colspan="5">Chargement...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -46,6 +50,11 @@
 
     <script src="/js/nav.js"></script>
     <script>
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (!user || user.role !== "admin") {
+            window.location.href = "/";
+        }
+
         authFetch('/api/admin/users')
             .then(async (r) => {
                 if (r.status === 401) {
@@ -82,4 +91,5 @@
             });
     </script>
 </body>
+
 </html>

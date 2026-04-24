@@ -37,7 +37,40 @@ const authorizeRole =
     next();
   };
 
+const authenticateTokenPage = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
+
+  if (!token) {
+    return res.redirect("/login");
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, payload) => {
+    if (err) {
+      return res.redirect("/login");
+    }
+
+    req.user = payload;
+    next();
+  });
+};
+
+const authorizeRolePage =
+  (...allowedRoles) =>
+  (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.redirect("/");
+    }
+
+    next();
+  };
+
 module.exports = {
   authenticateToken,
   authorizeRole,
+  authenticateTokenPage,
+  authorizeRolePage,
 };

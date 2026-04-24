@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Mon Profil</title>
     <link rel="stylesheet" href="/css/main.css">
 </head>
+
 <body>
     <div id="topbar"></div>
 
@@ -68,6 +70,11 @@
 
     <script src="/js/nav.js"></script>
     <script>
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (!user) {
+            window.location.href = "/login";
+        }
+
         // ------------------------------------------------------------------
         // Chargement du profil au démarrage
         // ------------------------------------------------------------------
@@ -81,8 +88,8 @@
             const user = await res.json();
 
             document.getElementById('username').textContent = user.username;
-            document.getElementById('email').textContent    = user.email;
-            document.getElementById('role').textContent     = user.role;
+            document.getElementById('email').textContent = user.email;
+            document.getElementById('role').textContent = user.role;
 
             document.getElementById('address').value = user.address || '';
 
@@ -152,4 +159,5 @@
         loadProfile();
     </script>
 </body>
+
 </html>
