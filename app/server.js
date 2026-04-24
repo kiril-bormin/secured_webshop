@@ -3,6 +3,7 @@ require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const path = require("path");
 const https = require("https");
+const fs = require("fs");
 
 const app = express();
 
@@ -50,8 +51,13 @@ app.get("/admin", (_req, res) =>
   res.sendFile(path.join(__dirname, "views", "admin.html")),
 );
 
-// Démarrage du serveur
-app.get("/test", (_req, res) => res.send("db admin: root, pwd : root"));
-app.listen(8080, () => {
-  console.log("Serveur démarré sur http://localhost:8080");
+//config ssl
+const sslOptions = {
+  key: fs.readFileSync(path.join(__dirname, "key.pem")),
+  cert: fs.readFileSync(path.join(__dirname, "cert.pem")),
+};
+
+// Démarrage du serveur avec l'option https
+https.createServer(sslOptions, app).listen(8443, () => {
+  console.log("Serveur HTTPS démarré sur https://localhost:8443");
 });
