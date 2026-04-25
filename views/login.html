@@ -46,14 +46,14 @@
 </html>
 <script>
     const notyf = new Notyf();
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
+    document.getElementById("loginForm").addEventListener("submit", async (e) => { // écoute de submission du formulaire de connexion (async pour pouvoir utiliser await à l'intérieur de la fonction)
+        e.preventDefault(); // Empêcher le rechargement de la page 
 
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        const formData = new FormData(e.target); // Crée un objet FormData à partir du formulaire soumis par l'utilisateur (illisible pour js)
+        const data = Object.fromEntries(formData.entries()); // Transforme FormData en un objet js (ex: "email" : "alice@webshop.com", "password" : 1234)
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetch("/api/auth/login", { // Envoie de la requete de connexion à backend (await pour attendre la réponse du backend avant de continuer)
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -61,25 +61,24 @@
                 body: JSON.stringify(data),
             });
 
-            const result = await response.json();
-            const errorDiv = document.getElementById("errorMessage");
+            const result = await response.json(); // Convertit la réponse du backend (json) en un objet js (cette méthode s'appelle .json qui indique le format source)
 
-            if (response.ok) {
+            if (response.ok) { // true pour les statuts HTTP 2xx
                 console.log("Connexion réussie:", result);
                 if (result.token) {
-                    localStorage.setItem("token", result.token);
+                    localStorage.setItem("token", result.token); // Stockage du token JWT dans localStorage pour les futures requêtes authentifiées
                 }
                 if (result.user) {
-                    localStorage.setItem("user", JSON.stringify(result.user));
+                    localStorage.setItem("user", JSON.stringify(result.user)); // convertit l'objet user en string avant de le stocker, car localStorage ne peut stocker que des chaînes de caractères
                 }
                 notyf.success("Connexion réussie !");
-                setTimeout(() => {window.location.href = "/"; }, 1000);
+                setTimeout(() => {window.location.href = "/"; }, 1000); // petite pause pour laisser la notification s'afficher
             } else {
-                notyf.error("Email ou mot de passe incorrect");
+                notyf.error("Email ou mot de passe incorrect"); 
 
             }
         } catch (error) {
-            console.error("Erreur réseau:", error);
+            console.error("Erreur réseau:", error); 
         }
     });
 </script>

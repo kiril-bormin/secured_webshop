@@ -29,6 +29,7 @@ module.exports = {
 
       const user = results[0];
 
+      // Vérification du mdp données avec celui en base (haché + pepper)
       const passwordWithPepper = password + PEPPER;
 
       bcrypt.compare(passwordWithPepper, user.password, (err, isMatch) => {
@@ -41,6 +42,7 @@ module.exports = {
             .json({ error: "Email ou mot de passe incorrect" });
         }
 
+        // Création du token jwt si les identifiants sont corrects
         const token = jwt.sign(
           {
             id: user.id,
