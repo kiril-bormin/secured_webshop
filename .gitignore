@@ -3,7 +3,7 @@ node_modules
 /secured_webshop.iml
 /.idea/
 .env
-/app/*.pem
+.pem
 
 # Photos uploadées par les utilisateurs (conservées localement, pas en git)
 /app/public/uploads/*.jpg

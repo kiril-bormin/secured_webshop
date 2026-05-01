@@ -1,6 +1,31 @@
 // Navigation commune à toutes les pages
 // Pour modifier le menu, éditer uniquement ce fichier
-window.authFetch = (url, options = {}) => {
+const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) return false;
+
+  const response = await fetch("/api/auth/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    return false;
+  }
+
+  const result = await response.json();
+  if (result.token) localStorage.setItem("token", result.token);
+  if (result.refreshToken) {
+    localStorage.setItem("refreshToken", result.refreshToken);
+  }
+  return true;
+};
+
+window.authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("token");
   const headers = options.headers ? { ...options.headers } : {};
 
@@ -8,9 +33,23 @@ window.authFetch = (url, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers,
+  });
+
+  if (response.status !== 401) return response;
+
+  const refreshed = await refreshAccessToken();
+  if (!refreshed) return response;
+
+  const newToken = localStorage.getItem("token");
+  const retryHeaders = options.headers ? { ...options.headers } : {};
+  if (newToken) retryHeaders.Authorization = `Bearer ${newToken}`;
+
+  return fetch(url, {
+    ...options,
+    headers: retryHeaders,
   });
 };
 
@@ -50,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       window.location.href = "/";
     });
   }

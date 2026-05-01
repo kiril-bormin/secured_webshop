@@ -68,6 +68,9 @@
                 if (result.token) {
                     localStorage.setItem("token", result.token); // Stockage du token JWT dans localStorage pour les futures requêtes authentifiées
                 }
+                if (result.refreshToken) {
+                    localStorage.setItem("refreshToken", result.refreshToken);
+                }
                 if (result.user) {
                     localStorage.setItem("user", JSON.stringify(result.user)); // convertit l'objet user en string avant de le stocker, car localStorage ne peut stocker que des chaînes de caractères
                 }

@@ -72,9 +72,8 @@ L'application démarre sur **http://localhost:8080**
 
 ## Comptes de départ
 
-| Email             | Mot de passe | Rôle  |
-| ----------------- | ------------ | ----- |
-| admin@webshop.com | admin123     | admin |
-| alice@webshop.com | password1    | user  |
+| Email             | Mot de passe | Rôle |
+| ----------------- | ------------ | ---- | --- |
+| kiril@webshop.com | Qwerty12@    | user |     |
 
 > **Note :** Les mots de passe sont hachés avec bcrypt et un pepper pour la sécurité.
