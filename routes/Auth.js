@@ -1,8 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/AuthController");
+const rateLimit = require("express-rate-limit");
 
-router.post("/login", controller.login);
+// Limiteur pour le login afin de prévenir le brute-force
+const loginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5, // 5 requêtes
+  message:
+    "Trop de tentatives de connexion, veuillez réessayer dans une minute.",
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+router.post("/login", loginLimiter, controller.login);
 router.post("/register", controller.register);
 router.post("/refresh", controller.refresh);
 
