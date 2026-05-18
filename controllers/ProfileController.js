@@ -5,7 +5,7 @@ module.exports = {
   // ----------------------------------------------------------
   // GET /api/profile
   // ----------------------------------------------------------
-  get: (req, res) => {
+  get: (req, res, next) => {
     const userId = req.user.id;
 
     db.query(
@@ -13,7 +13,7 @@ module.exports = {
       [userId],
       (err, results) => {
         if (err) {
-          return res.status(500).json({ error: "Erreur serveur" });
+          return next(err);
         }
         if (results.length === 0) {
           return res.status(404).json({ error: "Utilisateur introuvable" });
@@ -26,7 +26,7 @@ module.exports = {
   // ----------------------------------------------------------
   // POST /api/profile
   // ----------------------------------------------------------
-  update: (req, res) => {
+  update: (req, res, next) => {
     const userId = req.user.id;
     const { address } = req.body;
 
@@ -35,7 +35,7 @@ module.exports = {
       [address, userId],
       (err) => {
         if (err) {
-          return res.status(500).json({ error: "Erreur serveur" });
+          return next(err);
         }
         res.json({ message: "Profil mis à jour" });
       },
@@ -45,7 +45,7 @@ module.exports = {
   // ----------------------------------------------------------
   // POST /api/profile/photo
   // ----------------------------------------------------------
-  uploadPhoto: (req, res) => {
+  uploadPhoto: (req, res, next) => {
     const userId = req.user.id;
 
     if (!req.file) {
@@ -59,7 +59,7 @@ module.exports = {
       [photoPath, userId],
       (err) => {
         if (err) {
-          return res.status(500).json({ error: "Erreur serveur" });
+          return next(err);
         }
         res.json({ message: "Photo mise à jour", photo_path: photoPath });
       },

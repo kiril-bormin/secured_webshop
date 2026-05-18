@@ -51,6 +51,12 @@ app.get("/admin", (_req, res) =>
   res.sendFile(path.join(__dirname, "views", "admin.html")),
 );
 
+// Middleware de gestion des erreurs
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Une erreur est survenue sur le serveur." });
+});
+
 //config ssl
 const sslOptions = {
   key: fs.readFileSync(path.join(__dirname, "key.pem")),

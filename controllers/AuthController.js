@@ -47,7 +47,7 @@ module.exports = {
   // POST /api/auth/login
   // ----------------------------------------------------------
   // Authentifie un utilisateur et genere les tokens d'acces et de refresh.
-  login: (req, res) => {
+  login: (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -56,7 +56,7 @@ module.exports = {
 
     const query = "SELECT * FROM users WHERE email = ?";
     db.query(query, [email], (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return next(err);
 
       if (results.length === 0) {
         return res
@@ -70,8 +70,7 @@ module.exports = {
       const passwordWithPepper = password + PEPPER;
 
       bcrypt.compare(passwordWithPepper, user.password, (err, isMatch) => {
-        if (err)
-          return res.status(500).json({ error: "Erreur de vérification" });
+        if (err) return next(err);
 
         if (!isMatch) {
           return res
@@ -81,7 +80,8 @@ module.exports = {
 
         // Refuse la connexion si le secret refresh n'est pas configure.
         if (!REFRESH_SECRET) {
-          return res.status(500).json({ error: "Refresh secret manquant" });
+          const err = new Error("Refresh secret manquant");
+          return next(err);
         }
 
         const token = buildAccessToken(user);
