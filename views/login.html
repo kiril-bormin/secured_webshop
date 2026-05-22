@@ -61,7 +61,12 @@
                 body: JSON.stringify(data),
             });
 
-            const result = await response.json(); // Convertit la réponse du backend (json) en un objet js (cette méthode s'appelle .json qui indique le format source)
+            let result = {};
+            try {
+                result = await response.json(); // Convertit la réponse du backend (json) en un objet js (cette méthode s'appelle .json qui indique le format source)
+            } catch (jsonErr) {
+                console.error("Erreur de décodage JSON:", jsonErr);
+            }
 
             if (response.ok) { // true pour les statuts HTTP 2xx
                 console.log("Connexion réussie:", result);
@@ -77,11 +82,12 @@
                 notyf.success("Connexion réussie !");
                 setTimeout(() => {window.location.href = "/"; }, 1000); // petite pause pour laisser la notification s'afficher
             } else {
-                notyf.error("Email ou mot de passe incorrect"); 
-
+                const errorMessage = result.error || result.message || "Email ou mot de passe incorrect";
+                notyf.error(errorMessage);
             }
         } catch (error) {
-            console.error("Erreur réseau:", error); 
+            console.error("Erreur réseau:", error);
+            notyf.error("Une erreur réseau est survenue");
         }
     });
 </script>

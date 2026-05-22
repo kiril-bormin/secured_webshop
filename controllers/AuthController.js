@@ -190,7 +190,7 @@ module.exports = {
     const refreshTokenHash = hashToken(refreshToken);
     // Verifie en BDD que le refresh token n'est ni expire ni revoque.
     const selectQuery =
-      "SELECT rt.id, rt.user_id, u.username, u.role FROM refresh_tokens rt JOIN users u ON u.id = rt.user_id WHERE rt.token_hash = ? AND rt.expires_at > NOW() AND rt.revoked_at IS NULL";
+      "SELECT rt.id, rt.user_id, u.username, u.role FROM refresh_tokens rt JOIN users u ON u.id = rt.user_id WHERE rt.token_hash = ? AND rt.expires_at > NOW() AND (rt.revoked_at IS NULL OR rt.revoked_at > NOW())";
 
     db.query(selectQuery, [refreshTokenHash], (err, results) => {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
@@ -205,10 +205,12 @@ module.exports = {
         role: row.role,
       };
 
-      // Rotation: supprime l'ancien refresh token avant d'en emettre un nouveau.
-      const deleteQuery = "DELETE FROM refresh_tokens WHERE id = ?";
-      db.query(deleteQuery, [row.id], (deleteErr) => {
-        if (deleteErr) {
+      // Rotation: marque l'ancien refresh token comme révoqué avec une courte tolérance,
+      // pour permettre une seconde requête parallèle avant de le rendre définitivement invalide.
+      const revokeQuery =
+        "UPDATE refresh_tokens SET revoked_at = DATE_ADD(NOW(), INTERVAL 5 SECOND) WHERE id = ?";
+      db.query(revokeQuery, [row.id], (revokeErr) => {
+        if (revokeErr) {
           return res.status(500).json({ error: "Erreur serveur" });
         }
 

@@ -8,6 +8,69 @@
     <link rel="stylesheet" href="/css/main.css">
     <!-- Notyf CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <style>
+        /* Styles pour l'indicateur de force */
+        .password-strength {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .strength-bar {
+            height: 7px;
+            width: 165px;
+            background: #e6e6e6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .strength-bar>.fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.25s ease-in-out;
+            background: red;
+        }
+
+        .strength-text {
+            margin-top: 6px;
+        }
+
+        .password-requirements {
+            margin-top: 10px;
+            padding-left: 18px;
+            color: #555;
+            font-size: 0.88rem;
+        }
+
+        .password-requirements li {
+            margin-bottom: 4px;
+        }
+
+        .password-requirements li.valid {
+            color: #2ecc71;
+        }
+
+        .password-requirements li::before {
+            content: "• ";
+            display: inline-block;
+            width: 1.2em;
+        }
+
+        .strength-very-weak {
+            background: #e74c3c;
+        }
+
+        .strength-weak {
+            background: #f39c12;
+        }
+
+        .strength-medium {
+            background: #f1c40f;
+        }
+
+        .strength-strong {
+            background: #2ecc71;
+        }
+    </style>
 </head>
 
 <body>
@@ -36,6 +99,21 @@
                         <input type="password" id="password" name="password" required
                             pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
                             title="8 caractères minimum, une majuscule, une minuscule, un chiffre et un caractère spécial.">
+
+                        <div id="passwordStrength" class="password-strength" aria-live="polite">
+                            <div class="strength-bar" aria-hidden="true">
+                                <div class="fill" id="passwordStrengthBar"></div>
+                            </div>
+                            <div class="strength-text" id="passwordStrengthText">Force : —</div>
+                        </div>
+
+                        <ul class="password-requirements">
+                            <li id="reqLength">8 caractères minimum</li>
+                            <li id="reqUpper">Une majuscule</li>
+                            <li id="reqLower">Une minuscule</li>
+                            <li id="reqNumber">Un chiffre</li>
+                            <li id="reqSpecial">Un caractère spécial</li>
+                        </ul>
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">Confirmer le mot de passe :</label>
@@ -62,6 +140,53 @@
     <script>
         const notyf = new Notyf();
 
+        // Indicateur de force de mot de passe
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('passwordStrengthBar');
+        const strengthText = document.getElementById('passwordStrengthText');
+        const reqLength = document.getElementById('reqLength');
+        const reqUpper = document.getElementById('reqUpper');
+        const reqLower = document.getElementById('reqLower');
+        const reqNumber = document.getElementById('reqNumber');
+        const reqSpecial = document.getElementById('reqSpecial');
+
+        function scorePassword(pw) {
+            let score = 0;
+            if (!pw) return score;
+            if (pw.length >= 8) score++;
+            if (pw.length >= 12) score++;
+            if (/[a-z]/.test(pw)) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[@$!%*?&]/.test(pw)) score++;
+            if (score <= 1) return 0;
+            if (score === 2) return 1;
+            if (score <= 4) return 2;
+            if (score === 5) return 3;
+            return 4;
+        }
+
+        function updateStrength(pw) {
+            const s = scorePassword(pw); // 0..4
+            const widths = ['0%', '25%', '50%', '75%', '100%'];
+            const classes = ['strength-very-weak', 'strength-weak', 'strength-medium', 'strength-strong', 'strength-strong'];
+            const texts = ['—', 'Très faible', 'Faible', 'Moyenne', 'Forte'];
+
+            strengthBar.style.width = widths[s];
+            strengthBar.className = 'fill ' + (classes[s] || 'strength-very-weak');
+            strengthText.textContent = 'Force : ' + texts[s];
+
+            reqLength.classList.toggle('valid', pw.length >= 8);
+            reqUpper.classList.toggle('valid', /[A-Z]/.test(pw));
+            reqLower.classList.toggle('valid', /[a-z]/.test(pw));
+            reqNumber.classList.toggle('valid', /[0-9]/.test(pw));
+            reqSpecial.classList.toggle('valid', /[@$!%*?&]/.test(pw));
+        }
+
+        passwordInput.addEventListener('input', (e) => {
+            updateStrength(e.target.value);
+        });
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -70,6 +195,12 @@
 
             if (data.password !== data.confirmPassword) {
                 return notyf.error("Les mots de passe ne correspondent pas");
+            }
+
+            // Empêcher l'envoi si la force est trop faible
+            const s = scorePassword(data.password);
+            if (s < 2) {
+                return notyf.error('Mot de passe trop faible, utilisez une phrase de passe plus longue et des caractères variés.');
             }
 
             try {
@@ -82,16 +213,52 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    notyf.success("Compte créé avec succès !");
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
+
+                    try {
+                        const loginResponse = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: data.email, password: data.password })
+                        });
+
+                        let loginResult = {};
+                        try {
+                            loginResult = await loginResponse.json();
+                        } catch (e) { }
+
+                        if (loginResponse.ok) {
+                            if (loginResult.token) {
+                                localStorage.setItem("token", loginResult.token);
+                            }
+                            if (loginResult.refreshToken) {
+                                localStorage.setItem("refreshToken", loginResult.refreshToken);
+                            }
+                            if (loginResult.user) {
+                                localStorage.setItem("user", JSON.stringify(loginResult.user));
+                            }
+                            notyf.success("Connexion réussie !");
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1000);
+                        } else {
+                            // Fallback to login page if autologin somehow fails
+                            setTimeout(() => {
+                                window.location.href = '/login';
+                            }, 1500);
+                        }
+                    } catch (loginErr) {
+                        console.error("Erreur de connexion automatique:", loginErr);
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 1500);
+                    }
                 } else {
-                    notyf.error("Erressur lors de l'inscription");
+                    const errorMessage = result.error || result.message || "Erreur lors de l'inscription";
+                    notyf.error(errorMessage);
                     console.log("Erreur d'inscription:", result);
                 }
             } catch (error) {
-                notyf.error("Erreur réseau");
+                notyf.error("Une erreur réseau est survenue");
             }
         });
     </script>

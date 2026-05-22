@@ -6,11 +6,13 @@ const rateLimit = require("express-rate-limit");
 // Limiteur pour le login afin de prévenir le brute-force
 const loginLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 5, // 5 requêtes
-  message:
-    "Trop de tentatives de connexion, veuillez réessayer dans une minute.",
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: 5, // fois 5 requêtes
+  message: {
+    error:
+      "Trop de tentatives de connexion, veuillez réessayer dans une minute.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 router.post("/login", loginLimiter, controller.login);
